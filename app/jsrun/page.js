@@ -1,14 +1,16 @@
 'use client'
 import React from "react"
 import Script from 'next/script'
-import Editor from "@monaco-editor/react";
+import CodeMirror from '@uiw/react-codemirror';
+import { javascript } from '@codemirror/lang-javascript';
+import { dracula } from '@uiw/codemirror-theme-dracula';
 import { Table, Input, Button } from 'antd';
 import { PlaySquareOutlined } from '@ant-design/icons';
 
-const  codeTmpl = `for(var i = 1;i< 10000;i++) {
+const codeTmpl = `for(var i = 1;i< 10000;i++) {
     console.log(i)
 }`
-export default function() {
+export default function () {
     const [code, setCode] = React.useState(codeTmpl)
     const [output, setOutput] = React.useState([])
     const [running, setRunning] = React.useState(false)
@@ -32,12 +34,11 @@ export default function() {
     }
     return <>
         <Script src={'/blog-cells.min.js'} />
-        <Editor
-            height="500px"
-            language="javascript"
-            theme="vs-dark"
-            value={code}
+       
+        <CodeMirror
+            value={code} height="400px" extensions={[javascript({ jsx: true })]}
             onChange={changeCode}
+            theme={dracula}
         />
         <div style={{ margin: '10px 0' }}>
             <Button onClick={runJsCode} icon={<PlaySquareOutlined />} loading={running}>run code</Button>

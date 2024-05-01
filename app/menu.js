@@ -10,7 +10,7 @@ let menu = [
     },
     {
         page: "/jsrun",
-        title: "RunJsCode",
+        title: "RunJs",
     },
     {
         page: "/base64",
