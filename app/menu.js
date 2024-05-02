@@ -5,6 +5,10 @@ let menu = [
         title: "首页",
     },
     {
+        page: "/json",
+        title: "JSON",
+    },
+    {
         page: "/qrcode",
         title: "二维码",
     },
@@ -15,11 +19,7 @@ let menu = [
     {
         page: "/base64",
         title: "Base64",
-    },  
-    {
-        page: "/json",
-        title: "JSON",
-    },    
+    },
 ]
 
 export default menu
