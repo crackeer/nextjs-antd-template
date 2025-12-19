@@ -77,10 +77,10 @@ const App = (props) => {
             initialValues={{ url: '', method: 'GET', 'content-type':'application/json'}}
             onValuesChange={onFormChange}
         >
-            <Form.Item label="url" name="url">
+            <Form.Item label={<strong>URL</strong>} name="url">
                 <Input placeholder="input url" />
             </Form.Item>
-            <Form.Item label="method" name="method">
+            <Form.Item label={<strong>Method</strong>} name="method">
                 <Radio.Group >
                     <Radio.Button value="GET">GET</Radio.Button>
                     <Radio.Button value="POST">POST</Radio.Button>
@@ -88,7 +88,7 @@ const App = (props) => {
                     <Radio.Button value="DELETE">DELETE</Radio.Button>
                 </Radio.Group>
             </Form.Item>
-            <Form.Item label="ContentType" name="content-type">
+            <Form.Item label={<strong>Content-Type</strong>} name="content-type">
                 <Radio.Group >
                     <Radio.Button value="application/json">application/json</Radio.Button>
                     <Radio.Button value="application/x-www-form-urlencoded">application/x-www-form-urlencoded</Radio.Button>

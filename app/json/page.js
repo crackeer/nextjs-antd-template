@@ -7,6 +7,7 @@ import jsonToGo from "@/util/json-to-go";
 import * as XLSX from 'xlsx';
 import Curl from './curl'
 import dayjs from 'dayjs';
+import Table from '@/component/Table';
 const intoObjectList = (list) => {
     let retData = []
     for (var i in list) {
@@ -60,7 +61,10 @@ class App extends React.Component {
             convert: '',
             curlData : null,
             curlVisible: false,
-            curlKey : ''
+            curlKey : '',
+            csvData: [],
+            csvColumns: [],
+            csvVisible: false
         }
     }
     initJSONEditor = (e) => {
@@ -166,6 +170,57 @@ class App extends React.Component {
         })
     }
 
+    toCSV = () => {
+        let data = this.jsonObject.get()
+        let jsonData = Array.isArray(data) ? data : [data]
+        
+        // 提取所有可能的列名
+        let allKeys = new Set()
+        jsonData.forEach(item => {
+            Object.keys(item).forEach(key => allKeys.add(key))
+        })
+        let columns = Array.from(allKeys)
+        
+        // 为每个数据项添加key属性
+        let tableData = jsonData.map((item, index) => {
+            let row = { key: index }
+            columns.forEach(col => {
+                row[col] = item[col] !== undefined ? item[col] : ''
+            })
+            return row
+        })
+        
+        this.setState({
+            csvData: tableData,
+            csvColumns: columns,
+            csvVisible: true
+        })
+    }
+    
+    exportCSV = () => {
+        let data = this.state.csvData
+        let columns = this.state.csvColumns
+        
+        // 创建工作簿和工作表
+        let wb = XLSX.utils.book_new()
+        let ws = XLSX.utils.json_to_sheet([])
+        
+        // 设置列名
+        XLSX.utils.sheet_add_aoa(ws, [columns], { origin: 'A1' })
+        
+        // 添加数据行
+        let rows = data.map(item => {
+            return columns.map(col => item[col])
+        })
+        XLSX.utils.sheet_add_aoa(ws, rows, { origin: 'A2' })
+        
+        // 添加工作表到工作簿
+        XLSX.utils.book_append_sheet(wb, ws, 'Sheet1')
+        
+        // 导出为CSV文件
+        XLSX.writeFile(wb, 'data.csv', { bookType: 'csv', type: 'file' })
+    }
+
     render() {
         return <div>
             <div style={{ textAlign: "center", marginBottom: "15px" }}>
@@ -181,7 +236,7 @@ class App extends React.Component {
                     <Button onClick={this.toGoStruct} type="primary">转Go结构体</Button>
                     <Button onClick={this.convertSQL} type="primary">转Insret SQL</Button>
                     <Button onClick={this.convertCurl} type="primary">转CURL请求</Button>
-                    <Button onClick={this.toGoStruct} type="primary">转CSV</Button>
+                    <Button onClick={this.toCSV} type="primary">转CSV</Button>
                     <Button onClick={this.toString} type="primary">序列化</Button>
                 </Space>
             </div>
@@ -198,7 +253,7 @@ class App extends React.Component {
                 }}
             >
                 <CopyToClipboard text={this.state.convert}>复制</CopyToClipboard>
-                <pre style={{ background: 'rgb(245 244 244)', marginTop: '4px' }}>{this.state.convert}</pre>
+                <Input.TextArea value={this.state.convert} autoSize={{ minRows: 5, maxRows: 20 }}  style={{ marginTop: '10px' }}/>
             </Modal>
             <Modal
                 title="Curl请求"
@@ -213,6 +268,24 @@ class App extends React.Component {
                 }}
             >
                 <Curl data={this.state.curlData} key={this.state.curlKey}/>
+            </Modal>
+            
+            <Modal
+                title="CSV数据"
+                alignCenter={false}
+                open={this.state.csvVisible}
+                footer={null}
+                width={'80%'}
+                autoFocus={false}
+                focusLock={true}
+                onCancel={() => {
+                    this.setState({ csvVisible: false });
+                }}
+            >
+                <div style={{ marginBottom: '10px', textAlign: 'right' }}>
+                    <Button type="primary" onClick={this.exportCSV}>导出CSV</Button>
+                </div>
+                <Table columnKeys={this.state.csvColumns} dataSource={this.state.csvData} scroll={{ x: true }} />
             </Modal>
         </div>
     }
