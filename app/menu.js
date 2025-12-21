@@ -1,24 +1,34 @@
 
 let menu = [
     {
-        page: "/",
+        key: "/",
+        label : "首页",
         title: "首页",
     },
     {
-        page: "/json",
+        key: "/json",
+        label : "JSON",
         title: "JSON",
     },
     {
-        page: "/qrcode",
+        key: "/qrcode",
+        label : "二维码",
         title: "二维码",
     },
     {
-        page: "/jsrun",
+        key: "/jsrun",
+        label : "RunJs",
         title: "RunJs",
     },
     {
-        page: "/base64",
-        title: "Base64",
+        key: "/string",
+        label : "字符串",
+        title: "字符串",
+    },
+    {
+        key: "/file/upload",
+        label : "文件上传",
+        title: "文件上传",
     },
 ]
 

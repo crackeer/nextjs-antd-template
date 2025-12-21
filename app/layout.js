@@ -39,12 +39,7 @@ const RootLayout = ({ children }) => {
                         }}
                         collapsed={false}
                     >
-                        <Menu selectedKeys={selectedKeys} mode="inline" theme="dark" onClick={clickMenu}>
-                            {menu.map(item => {
-                                return <Menu.Item key={item.page}>
-                                    {item.title}
-                                </Menu.Item>
-                            })}
+                        <Menu selectedKeys={selectedKeys} mode="inline" theme="dark" onClick={clickMenu} items={menu}>
                         </Menu>
                     </Sider>
                     <Layout style={{ marginLeft: '200px', padding: '10px' }}>
