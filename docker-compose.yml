@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  next-demo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: next-demo-app
+    ports:
+      - "9393:9393"
+    environment:
+      - NODE_ENV=production
+    volumes:
+      # 持久化上传文件目录
+      - ./public/uploads:/app/public/uploads
+      # 可选：如果需要开发时热重载，可以挂载源代码
+      # - .:/app
+      # - /app/node_modules
+      # - /app/.next
+    restart: unless-stopped
+    networks:
+      - next-demo-network
+
+  # 可选：如果需要数据库，可以添加
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: next-demo-db
+  #   environment:
+  #     POSTGRES_DB: nextdemo
+  #     POSTGRES_USER: nextuser
+  #     POSTGRES_PASSWORD: nextpass
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+  #   networks:
+  #     - next-demo-network
+
+  # 可选：如果需要Redis缓存
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: next-demo-redis
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis_data:/data
+  #   networks:
+  #     - next-demo-network
+
+networks:
+  next-demo-network:
+    driver: bridge
+
+# volumes:
+#   postgres_data:
+#   redis_data:

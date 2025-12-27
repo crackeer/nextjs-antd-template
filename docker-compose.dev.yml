@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  next-demo-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: next-demo-dev
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    volumes:
+      # 挂载源代码以支持热重载
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+      # 持久化上传文件目录
+      - ./public/uploads:/app/public/uploads
+    command: npm run dev
+    restart: unless-stopped
+    networks:
+      - next-demo-network
+
+networks:
+  next-demo-network:
+    driver: bridge

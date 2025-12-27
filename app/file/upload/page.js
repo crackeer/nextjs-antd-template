@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { Button, Upload, List, message, Progress, Spin, Modal } from 'antd';
-import { UploadOutlined, DownloadOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Button, Upload, List, message, Progress, Spin, Modal, QRCode } from 'antd';
+import { UploadOutlined, DownloadOutlined, DeleteOutlined, QrcodeOutlined } from '@ant-design/icons';
 import axios from 'axios';
 
 const FileUploadPage = () => {
@@ -10,7 +10,10 @@ const FileUploadPage = () => {
     const [uploading, setUploading] = useState(false);
     const [progress, setProgress] = useState(0);
     const [loading, setLoading] = useState(true);
-    const [modalApi, modalContext] = Modal.useModal()
+    const [modalApi, modalContext] = Modal.useModal();
+    const [qrCodeVisible, setQrCodeVisible] = useState(false);
+    const [currentFileUrl, setCurrentFileUrl] = useState('');
+    const [currentFileName, setCurrentFileName] = useState('');
 
     // 统一的获取文件列表函数
     const fetchAllFiles = async () => {
@@ -129,6 +132,15 @@ const FileUploadPage = () => {
         });
     };
 
+    // 显示文件二维码
+    const showQRCode = (file) => {
+        // 构建完整的URL，包含host
+        const fullUrl = `${window.location.origin}${file.url}`;
+        setCurrentFileUrl(fullUrl);
+        setCurrentFileName(file.name);
+        setQrCodeVisible(true);
+    };
+
     // 注意：已移除清空所有文件功能，避免误操作导致服务器文件丢失
     // 如果需要批量删除文件，请逐个点击删除按钮
 
@@ -148,6 +160,13 @@ const FileUploadPage = () => {
                                 onClick={() => handleDownload(item)}
                             >
                                 下载
+                            </Button>,
+                            <Button
+                                type="link"
+                                icon={<QrcodeOutlined />}
+                                onClick={() => showQRCode(item)}
+                            >
+                                二维码
                             </Button>,
                             <Button
                                 type="link"
@@ -215,6 +234,30 @@ const FileUploadPage = () => {
                 </Spin>
             </div>
             {modalContext}
+            
+            <Modal
+                title={`文件二维码 - ${currentFileName}`}
+                open={qrCodeVisible}
+                onCancel={() => setQrCodeVisible(false)}
+                footer={[
+                    <Button key="close" onClick={() => setQrCodeVisible(false)}>
+                        关闭
+                    </Button>
+                ]}
+                width={400}
+                centered
+            >
+                <div style={{ textAlign: 'center', padding: '20px' }}>
+                    <QRCode 
+                        value={currentFileUrl} 
+                        size={250} 
+                        style={{ margin: '10px auto' }}
+                    />
+                    <div style={{ marginTop: '15px', wordBreak: 'break-all', fontSize: '12px', color: '#666' }}>
+                        {currentFileUrl}
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 };

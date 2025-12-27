@@ -1,6 +1,6 @@
 'use client'
 import React from 'react';
-import { Button, Input, Row, Col, Space, Modal } from 'antd';
+import { Button, Input, Space, Modal, Form, message } from 'antd';
 import JSONEditor from '@/component/JSONEditor';
 import CopyToClipboard from '@/component/CopyToClipboard';
 import jsonToGo from "@/util/json-to-go";
@@ -50,6 +50,27 @@ const toSQL = (object) => {
     return 'INSERT INTO TABLE_NAME (' + fields.join(',') + ') values (' + values.join(',') + ');'
 }
 
+// 递归替换JSON对象中的文本
+const replaceInObject = (obj, searchText, replaceText, caseSensitive = false) => {
+    if (typeof obj === 'string') {
+        if (caseSensitive) {
+            return obj.replaceAll(searchText, replaceText);
+        } else {
+            return obj.replace(new RegExp(searchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), replaceText);
+        }
+    } else if (Array.isArray(obj)) {
+        return obj.map(item => replaceInObject(item, searchText, replaceText, caseSensitive));
+    } else if (obj !== null && typeof obj === 'object') {
+        const newObj = {};
+        for (const key in obj) {
+            const newKey = replaceInObject(key, searchText, replaceText, caseSensitive);
+            newObj[newKey] = replaceInObject(obj[key], searchText, replaceText, caseSensitive);
+        }
+        return newObj;
+    }
+    return obj;
+}
+
 class App extends React.Component {
     jsonObject = null
     constructor(props) {
@@ -64,7 +85,13 @@ class App extends React.Component {
             curlKey : '',
             csvData: [],
             csvColumns: [],
-            csvVisible: false
+            csvVisible: false,
+            replaceVisible: false,
+            replaceForm: {
+                searchText: '',
+                replaceText: '',
+                caseSensitive: false
+            }
         }
     }
     initJSONEditor = (e) => {
@@ -221,6 +248,42 @@ class App extends React.Component {
         XLSX.writeFile(wb, 'data.csv', { bookType: 'csv', type: 'file' })
     }
 
+    // 打开替换文本对话框
+    openReplaceDialog = () => {
+        this.setState({ replaceVisible: true });
+    }
+
+    // 执行文本替换
+    performReplace = () => {
+        const { searchText, replaceText, caseSensitive } = this.state.replaceForm;
+        
+        if (!searchText) {
+            message.warning('请输入要查找的文本');
+            return;
+        }
+
+        try {
+            const currentData = this.jsonObject.get();
+            const newData = replaceInObject(currentData, searchText, replaceText, caseSensitive);
+            this.jsonObject.set(newData);
+            
+            message.success('文本替换完成');
+            this.setState({ replaceVisible: false });
+        } catch (error) {
+            message.error('替换过程中出现错误: ' + error.message);
+        }
+    }
+
+    // 更新替换表单数据
+    updateReplaceForm = (field, value) => {
+        this.setState({
+            replaceForm: {
+                ...this.state.replaceForm,
+                [field]: value
+            }
+        });
+    }
+
     render() {
         return <div>
             <div style={{ textAlign: "center", marginBottom: "15px" }}>
@@ -237,6 +300,7 @@ class App extends React.Component {
                     <Button onClick={this.convertSQL} type="primary">转Insret SQL</Button>
                     <Button onClick={this.convertCurl} type="primary">转CURL请求</Button>
                     <Button onClick={this.toCSV} type="primary">转CSV</Button>
+                    <Button onClick={this.openReplaceDialog} type="primary">替换文本</Button>
                     <Button onClick={this.toString} type="primary">序列化</Button>
                 </Space>
             </div>
@@ -286,6 +350,47 @@ class App extends React.Component {
                     <Button type="primary" onClick={this.exportCSV}>导出CSV</Button>
                 </div>
                 <Table columnKeys={this.state.csvColumns} dataSource={this.state.csvData} scroll={{ x: true }} />
+            </Modal>
+
+            <Modal
+                title="替换文本"
+                alignCenter={false}
+                open={this.state.replaceVisible}
+                onOk={this.performReplace}
+                onCancel={() => {
+                    this.setState({ replaceVisible: false });
+                }}
+                okText="替换"
+                cancelText="取消"
+                width={500}
+            >
+                <Form layout="vertical">
+                    <Form.Item label="查找文本" required>
+                        <Input
+                            placeholder="请输入要查找的文本"
+                            value={this.state.replaceForm.searchText}
+                            onChange={(e) => this.updateReplaceForm('searchText', e.target.value)}
+                        />
+                    </Form.Item>
+                    <Form.Item label="替换为">
+                        <Input
+                            placeholder="请输入替换后的文本"
+                            value={this.state.replaceForm.replaceText}
+                            onChange={(e) => this.updateReplaceForm('replaceText', e.target.value)}
+                        />
+                    </Form.Item>
+                    <Form.Item>
+                        <label>
+                            <input
+                                type="checkbox"
+                                checked={this.state.replaceForm.caseSensitive}
+                                onChange={(e) => this.updateReplaceForm('caseSensitive', e.target.checked)}
+                                style={{ marginRight: '8px' }}
+                            />
+                            区分大小写
+                        </label>
+                    </Form.Item>
+                </Form>
             </Modal>
         </div>
     }

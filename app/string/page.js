@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from 'react';
-import { Button, Input, Row, Col, Radio, Space, useMessage } from 'antd';
+import { Button, Input, Row, Col, Radio, Space, message } from 'antd';
 import { Base64 } from 'js-base64';
 import CopyToClipboard from '@/component/CopyToClipboard';
 const App = (props) => {
